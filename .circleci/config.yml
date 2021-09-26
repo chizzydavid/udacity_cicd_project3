@@ -7,33 +7,37 @@ commands:
       # Add parameter here
       workflow_id:
         type: string
-        default: $CIRCLE_WORKFLOW_ID
     steps:
       - run:
           name: Destroy environments
           when: on_fail
           command: |
             # Your code here
-            exit 1
+            aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
+            aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      # Add parameter here
+      workflow_id:
+        type: string     
     steps:
       - run:
           name: Revert migrations
           # Add when this will run
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS=$(curl -H "token: <<parameters.workflow_id>>" --request GET https://api.memstash.io/values/migration_<<parameters.workflow_id>>)
             SUCCESS = 1
             if(( $SUCCESS==1 )); 
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd ~/project/backend
+              npm install
+              #  Add revert code here. You can find this in the Getting Started section.
+              npm run migrations:revert
             fi
+          when: on_fail
             
 jobs:
   build-frontend:
@@ -175,11 +179,17 @@ jobs:
       # Checkout code from git
       - checkout
       - run:
+          name: Install tar utility
+          command: |
+            yum install -y tar
+            yum install -y gzip
+
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
-              --tags project=udacity-project3 \
+              --tags project=udacity-project3-backend \
               --stack-name "uda-backend-stack-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
       - run:
@@ -187,49 +197,91 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
-              --tags project=udapeople \
+              --tags project=udacity-project3-frontend \
               --stack-name "uda-frontend-stack-${CIRCLE_WORKFLOW_ID}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+
+      # Variables in bash: https://ryanstutorials.net/bash-scripting-tutorial/bash-variables.php
       - run:
           name: Add back-end ip to ansible inventory
           command: |
             echo "[all]" > inventory.txt #Creates new file
             aws ec2 describe-instances \
-             --filters "Name=tag:project,Values=udacity-project3" \
-             --query 'Reservations[*].Instances[*].PublicIpAddress' \
+             --filters "Name=tag:project,Values=udacity-project3-backend" \
+             --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> inventory.txt # Appends results to inventory.txt
-            
+             cat inventory.txt
+
+      - run:
+          name: Persist backend ip to storage
+          # Got token from memstash.io page.  Storage is temporary (that's why it is free)
+          no_output_timeout: 15m #time out after 15 minutes
+          command: |
+            backend_dns=$(aws ec2 describe-instances \
+             --filters "Name=tag:project,Values=udacity-project3-backend" \
+             --query 'Reservations[*].Instances[*].PublicDnsName' \
+             --output text)
+            curl -H "Content-Type: text/plain" -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" \
+            --request PUT --data "$backend_dns" https://api.memstash.io/values/backend_dns
+            echo $backend_dns
+
+      - run:
+          name: Test memstash stored ip
+          command: |
+            result=$(curl -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" --request GET https://api.memstash.io/values/backend_dns)
+            echo "$result"
+
       - persist_to_workspace:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
-      # Here's where you will add some code to rollback on failure      
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"      
 
-  # configure-infrastructure:
-  #   docker:
-  #     # Docker image here that supports Ansible
-  #   steps:
-  #     # Checkout code from git
-  #     - checkout
-  #     # Add ssh keys with fingerprint
-  #     # attach workspace
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     - run:
-  #         name: Configure server
-  #         command: |
-  #           # Your code here
-  #           exit 1
-  #     # Here's where you will add some code to rollback on failure      
+  configure-infrastructure:
+    docker:
+      # Docker image here that supports Ansible
+      - image: circleci/python
+      #- image:python:3.7-alpine3.11
+    steps:
+      # Checkout code from git
+      - checkout
+      # Add ssh keys with fingerprint
+      - add_ssh_keys:
+          fingerprints: [6d:32:ce:0e:b7:68:b3:e0:87:ba:dc:05:0e:74:31:a7]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Install dependencies
+          command: |
+            # Your code here
+            pip install -U ansible
+            sudo apt install tar gzip
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+      # - run:
+      #     name: Simulate Error
+      #     command: return 1
+      - run:
+          name: Configure server
+          command: |
+            # Your code here
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+      #Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"      
 
   # run-migrations:
   #   docker:
   #     # Docker image here that supports NodeJS
+  #     - image: circleci/node:13.8.0
   #   steps:
   #     # Checkout code from git
+  #     - checkout
   #     - run:
   #         name: Run migrations
   #         command: |
@@ -245,8 +297,15 @@ jobs:
   # deploy-frontend:
   #   docker:
   #     # Docker image here that supports AWS CLI
+  #     - image: amazon/aws-cli
   #   steps:
   #     # Checkout code from git
+  #     - checkout
+  #     - run:
+  #         name: Install tar utility
+  #         command: |
+  #           yum install -y tar
+  #           yum install -y gzip
   #     - run:
   #         name: Install dependencies
   #         command: |
@@ -268,6 +327,7 @@ jobs:
   #     # Docker image here that supports Ansible
   #   steps:
   #     # Checkout code from git
+  #     - checkout
   #     # Add ssh keys with fingerprint
   #     # attach workspace
   #     - run:
@@ -282,9 +342,11 @@ jobs:
 
   # smoke-test:
   #   docker:
-  #     # Lightweight Docker image 
+  #     # Lightweight Docker image
+  #     - image: alpine:latest 
   #   steps:
   #     # Checkout code from git
+  #     - checkout
   #     - run:
   #         name: Install dependencies
   #         command: |
@@ -306,8 +368,15 @@ jobs:
   # cloudfront-update:
   #   docker:
   #     # Docker image here that supports AWS CLI
+  #     - image: amazon/aws-cli
   #   steps:
   #     # Checkout code from git
+  #     - checkout
+  #     - run:
+  #          name: Install tar utility
+  #          command: |
+  #            yum install -y tar
+  #            yum install -y gzip
   #     - run:
   #         name: Install dependencies
   #         command: |
@@ -321,8 +390,15 @@ jobs:
 # cleanup:
 #     docker:
 #       # Docker image here
+#       - image: amazon/aws-cli
 #     steps:
 #       # Checkout code from git
+#       - checkout
+#       - run:
+#           name: Install tar utility
+#           command: |
+#             yum install -y tar
+#             yum install -y gzip
 #       - run:
 #           name: Get old stack workflow id
 #           command: |
@@ -353,13 +429,13 @@ workflows:
           requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
-          #filters:
-            #branches:
-              #only: [test-feature-branch]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
+          # filters:
+          #   branches:
+          #     only: [test-feature-branch]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+      #- run-migrations:
+      #    requires: [configure-infrastructure]
       # - deploy-frontend:
       #     requires: [run-migrations]
       # - deploy-backend:
