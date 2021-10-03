@@ -7,7 +7,101 @@ In this project, you will prove your mastery of the following learning objective
 - Utilize a configuration management tool to accomplish deployment to cloud-based servers.
 - Surface critical server errors for diagnosis using centralized structured logging.
 
-![Diagram of CI/CD Pipeline we will be building.](udapeople.png)
+![Diagram of CI/CD Pipeline we will be building.](./img/udapeople.png)
+
+## Conceptual Overview of the Project
+
+To help my understanding, I will present my conceptual understanding of the project.  What we are trying to do and how.
+
+### Relevant Files
+
+The majority of the CI/CD code that had to written for the project can be found in the `.circleci` folder. More specificially, all the relevant code can be found in the following files under the `.circleci` folder:
+
+- **config.yml**: the main file that outline the CI/CD pipeline
+- *files/cloudfront.yml* (given): File that deploys the initial infrastructure for production deployment on the CloudFront CDN service.  Cloudfront delivers content to user.  It is a content delivery service.
+
+- *files/backend.yml*: Creates the EC2 instance that will serve the backend binary that runs the nodejs website.
+
+- *files/frontend.yml*: Deploys the frontend infrastructure. The frontend will be served through an S3 bucket. So creates the bucket for where the frontend will be store. The s3bucket will be unique with the CIRCLE_WORKFLOW_ID.  So every new frontend will be stored in a different S3 bucket, so the url will change (based on the s3 bucket url). When promoting the new frontend, you are swapping this new url (green deployment) with the blue candidate that is currently in Cloudfront infrastructure.
+
+- *ansible/configure-server.yml*: One of the main files for ansible. Installs python on the EC2 instance.  See the `configure-infrastructure` job in the *config.yml*. It also triggers the *configure-server role* and the *configure-prometheus-node-exporter role*.
+  - *ansible/roles/configure-server/main.yml*: Installs `nodejs`, `npm`, and `pm2` on the EC2 instance.  Then starts the backend server using pm2.
+  - *ansible/roles/configure-prometheus-node-exporter/tasks/main.yml*:  Installs node exporter and enables the prometheus node_exporter service.  Prometheus is a open source service that monitors applications and sends alerts when needed.
+
+- *ansible/deploy-backend.yml*: Sets up the deploy role (also initiates ansible settings).
+  - *ansible/roles/deploy/tasks/main.yml*: `Add description`
+
+Note the actually code for the application that is being deployed is in the backend and frontend containers. The backend constructs the backend server using Nodejs.  The frontend (i.e., client GUI) is also created using Nodejs  
+
+### How the CICD pipeline is laid out by the config.yml file
+
+![CICD Pipeline](./img/CICD_pipeline.png)
+
+To understand what this project is doing.  I am listing out jobs/steps in the pipeline (i.e., workflow), and trying to explain them. Note, each job is done within a container.  We specify the container to use.
+
+1. **Build Frontend**: Use this container to take the front end code and create the binary (computer readable version of the code) that will be executed. This requires installing dependencies, checking the code style fits expectation, and then finally creating the binary. To prevent constantly having to install the dependencies, after the first run of the workflow, all subsequent workflows will use the dependencies store in the cache.
+
+2. **Build Backend**: Similar to build front end, but use this container to build (compile) the backend binary.  Want to make sure there is no syntax errors.
+
+3. **Test Frontend**: Use this container to tests that the frontend scripts passes unit tests.  Want to make sure there are no logical errors.
+
+4. **Test Backend**: Use this container to tests that the backend scripts passes unit tests. Want to make sure there are no logical errors.
+
+5. **Scan Frontend**: Use this container to scan package dependencies (i.e., packages/modules/libraries) for the frontend scripts for security issues. It also fixes the most critical cases by forcing a package update.
+
+6. **Scan Backend**: Use this container to scan package dependencies (i.e., packages/modules/libraries) for the backend scripts for security issues.It also fixes the most critical cases. It also fixes the most critical cases by forcing a package update.
+
+7. **deploy infrastructure**: You are telling this container to use the cloudformation template (i.e., `backend.yml`) and generate the EC2 instance for where the backend application will be located.  Also create the S3 bucket, using the cloudformation template `frontend.yml`, where the frontend will be located. Create the inventory file that ansible use to understand which EC2 instances in your account to configure.  The inventory file is stored in the workspace so other jobs can access file. I also store the backend URL to memstash, so I can access this variable at any point.
+
+8. **configure-infrastructure**: Goal is to run ansible in the container and tell let ansible ssh into the EC2 instances that you defined in the inventory.txt file.
+
+9. **run-migration**: The container runs the database migration after configuring the .env file.  The goal is to get the environment settings that are stored in CircleCI interface and get them into the .env file of the candidate EC2 instance application folder.  After it is in the .env file, Ansible needs to make the environment variables available to th
+
+10. **deploy-frontend**: Container that moves frontend files to S3 bucket that will serve our green candidate website for deployment.
+
+11. **deploy-backend**: Container that moves the final backend files to the EC2 instance that will serve as our green candidate for deployment.
+
+12. **Smoke Test**:
+
+### Saving Information in CircleCI
+
+![Persisting Data in CircleCI](./img/CircleCI_persist_data.png)
+
+[Persisting Data in CircleCI](https://circleci.com/blog/persisting-data-in-workflows-when-to-use-caching-artifacts-and-workspaces/)
+
+As the image shows:
+
+- *Workspace*: are mutable (i.e., changeable) file storage for while the workflow is running.  Each job in the workflow can add (`persist_to_workspace`) *files* and retreive *files* (`attach_workspace`). When retrieving files, you can only access it files from jobs that occurred previously.
+
+- *Cache*: are nonmutatble file storage that can be use between workflow runs.  It shares files saved in the same job (`save_cache`) but across different workflow runs. It is main used for storing packages or things you download for the purpose of running the application.  It makes it so the next time you run . To retrieve files (`restore_cache`).
+
+- *artifacts*: If you want to store files, which were constructed inside of a workflow, outside of the workflow. You will be able to access the files through the CircleCI tool
+
+- *environment variables*: You (the user), store key-pair values in the CIRCLECI interface to be used by the workflow.  You may store secrets or things you do not want to hard code into your code.  Secrets include ssh keys, database connection information, or login information.
+
+- *secrets manager*: Secrets managers like Hashicorp vault, AWS secret manager, or memstash.io can be use to store environment variables or other variables. Note I said variable.  The CircleCI persist data all focus on saving files.  These secret manager securely store variables that you can save and retrieve while run a workflow or even running the application. This project uses memstash.io as its secrets manager example.
+  
+  - ![Memstash IO interface](./img/memstash_io.png)
+  - [Memstash.io url](memstash.io)
+  - To use memstash.io you need to go to the url.  And copy the PUT curl code to save the data.  You can put in dummy data for the Key and Values.  The most important part is the unique token.  That is how it going to store and retieve the data.  After getting the PUT code, include it in your application or workflow.  To retrieve the value use the Get Curl code that memstash.io provides.
+
+### Other Notes
+
+Ran the cloudformation code with the following aws cli command:
+
+```bash
+aws cloudformation create-stack --profile udacity_project3 --stack-name uda-cloudfront-stack --template-body file://cloudfront.yml --region us-east-1 --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
+```
+
+In CircleCI an executor is related to what base operating system (MacOS, Linus, Window) the container is based on.
+
+#### To SSH into Client
+
+1. Open terminal
+2. Run this command, if necessary, to ensure your key is not publicly viewable. `chmod 400 <key-file.cer/pem>`
+3. In terminal enter the following: `ssh -i <key-file.cer or key-file.pem> <user>@<IP-address>` where user is the OS default user: (e.g, `ubuntu` for Linux Ubuntu OS, `ec2-user` for Amazon distributions. And IP-Address can be the ip-address or the dns url
+
+---
 
 ## Instructions
 
@@ -107,7 +201,7 @@ As the warning says above, it won't be possible to run most of the code in the p
 
 Most of the tasks needed to build, test and deploy the application are simplified by "npm scripts" that are found in the `package.json` for either front-end or back-end. For any of these scripts, you will need to `cd` into the respective folder and then run the script using the command `npm run [script name]`. Here are the most relevant scripts:
 
-![Project Table](project3_table.png)
+![Project Table](./img/project3_table.png)
 
 ### Examples
 
@@ -180,12 +274,3 @@ Before you submit your project, please check your work against the project rubri
 ### License
 
 [License](LICENSE.md)
-
-## Other
-
-Ran the cloudformation code with the following aws cli command:
-
-```bash
-aws cloudformation create-stack --profile udacity_project3 --stack-name uda-cloudfront-stack --template-body file://cloudfront.yml --region us-east-1 --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
-```
-
