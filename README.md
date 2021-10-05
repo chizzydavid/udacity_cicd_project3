@@ -31,7 +31,7 @@ The majority of the CI/CD code that had to written for the project can be found 
 - *ansible/deploy-backend.yml*: Sets up the deploy role (also initiates ansible settings).
   - *ansible/roles/deploy/tasks/main.yml*: `Add description`
 
-Note the actually code for the application that is being deployed is in the backend and frontend containers. The backend constructs the backend server using Nodejs.  The frontend (i.e., client GUI) is also created using Nodejs  
+Note the actually code for the application that is being deployed is in the backend and frontend containers. The backend constructs the backend server using Nodejs.  The frontend (i.e., client GUI) is also created using Nodejs.  Also we are using a `blue-green deployment strategy`.  
 
 ### How the CICD pipeline is laid out by the config.yml file
 
@@ -55,13 +55,17 @@ To understand what this project is doing.  I am listing out jobs/steps in the pi
 
 8. **configure-infrastructure**: Goal is to run ansible in the container and tell let ansible ssh into the EC2 instances that you defined in the inventory.txt file.
 
-9. **run-migration**: The container runs the database migration after configuring the .env file.  The goal is to get the environment settings that are stored in CircleCI interface and get them into the .env file of the candidate EC2 instance application folder.  After it is in the .env file, Ansible needs to make the environment variables available to th
+9. **run-migration**: The container runs the database migration after configuring the .env file.  The goal is to get the environment settings that are stored in CircleCI interface and get them into the .env file of the migration container.  After the .env file is in the container's file system, Ansible needs to make the values in the .env file, environment variables within the EC2 instance. After that, Ansible starts the backend executables.
 
 10. **deploy-frontend**: Container that moves frontend files to S3 bucket that will serve our green candidate website for deployment.
 
 11. **deploy-backend**: Container that moves the final backend files to the EC2 instance that will serve as our green candidate for deployment.
 
-12. **Smoke Test**:
+12. **Smoke Test**: The goal is to check that the candidate application is on the internet and that you can connect to it.
+
+13. **CloudFront Update**: Promote the candidate application replacement. Replace the blue candidate (aka. the application version currently running as the production application) with green candidate (updated application that just went through the CICD process).
+
+14. **Clean up**:
 
 ### Saving Information in CircleCI
 
@@ -100,6 +104,11 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
 1. Open terminal
 2. Run this command, if necessary, to ensure your key is not publicly viewable. `chmod 400 <key-file.cer/pem>`
 3. In terminal enter the following: `ssh -i <key-file.cer or key-file.pem> <user>@<IP-address>` where user is the OS default user: (e.g, `ubuntu` for Linux Ubuntu OS, `ec2-user` for Amazon distributions. And IP-Address can be the ip-address or the dns url
+
+### Random help links
+
+- [AWS CLI S3 Command Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html)
+- [difference btw aws cp and aws sync:](https://stackoverflow.com/questions/64728076/aws-s3-cp-vs-aws-s3-sync-behavior-and-cost)
 
 ---
 
