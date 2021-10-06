@@ -52,6 +52,7 @@ jobs:
           command: |
             cd frontend
             npm i
+            npm update
             npm audit fix
             #npm run lint # doesn't work
       - run:
@@ -107,6 +108,7 @@ jobs:
           no_output_timeout: 15m
           command: |
             cd frontend
+            npm i
             npm test
                 
   test-backend:
@@ -352,8 +354,6 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
-      - restore_cache:
-          keys: [frontend-build-fixed]
       - run:
           # Explains the -y for the yum install command: 
           # https://stackoverflow.com/questions/44715458/build-docker-image-fail-exiting-on-user-command
@@ -361,10 +361,12 @@ jobs:
           no_output_timeout: 15m
           command: |
             # your code here
-            yum install -y tar gzip
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
+            yum install gzip tar python3-pip curl -y
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install nodejs npm -y
+            cd frontend
+            npm install
+            npm audit fix
 
       - run:
           name: Get backend url
@@ -397,11 +399,45 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID}" 
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID}"     
-                    
+
   deploy-backend:
     docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-build]
+      # attach workspace
+      - attach_workspace:
+          at: ~/
+      - add_ssh_keys:
+          fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install python3-pip -y # not sure if it is yum or apt
+            python --version
+            pip3 --version
+            pip3 install awscli
+            pip3 install ansible
+
+      - run:
+          name: Backend build
+          command: |
+            cd backend
+            #npm i
+            npm run build
+            ls -l # just want to see the list of files
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}" 
+       
+  deploy-backend-old:
+    docker:
       # Docker image here that supports Ansible
-      - image: circleci/python
+      - image: amazon/aws-cli
     steps:
       # Checkout code from git
       - checkout
@@ -415,17 +451,18 @@ jobs:
           name: Install dependencies
           command: |
             # your code here
+            yum install gzip tar python3-pip curl -y
+            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+            yum install nodejs npm -y
             pip install -U ansible
-            pip install awscli
-            sudo apt install nodejs
-            sudo apt install npm
-
+            cd frontend
+            npm install
+            npm audit fix
+            
       - run:
           name: Build app
           command: |
             cd backend
-            #npm install
-            #npm audit fix
             npm run build
             ls -ahl
 
@@ -538,7 +575,7 @@ jobs:
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID}"      
 
-cleanup:
+  cleanup:
     docker:
       # Docker image here
       - image: amazon/aws-cli
