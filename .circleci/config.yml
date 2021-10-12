@@ -13,7 +13,9 @@ commands:
           when: on_fail
           command: |
             # Your code here
-            aws s3 rm --recursive s3://udapeople-${CIRCLE_WORKFLOW_ID}/dist
+            echo s3://udapeople-<<parameters.workflow_id>>/
+            echo uda-frontend-stack-<<parameters.workflow_id>>
+            #aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
             aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
             aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
 
@@ -60,7 +62,8 @@ jobs:
           command: |
             cd frontend
             npm run build
-            ls -l
+            ls -alh # What is in the frontend 
+            ls -alh dist # What is in the distribution
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -194,16 +197,16 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project=udacity-project3-backend \
-              --stack-name "uda-backend-stack-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+              --stack-name "uda-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project=udacity-project3-frontend \
-              --stack-name "uda-frontend-stack-${CIRCLE_WORKFLOW_ID}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID}"  
+              --stack-name "uda-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
 
       # Variables in bash: https://ryanstutorials.net/bash-scripting-tutorial/bash-variables.php
       - run:
@@ -241,7 +244,7 @@ jobs:
             - project/.circleci/ansible/inventory.txt
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"      
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
   configure-infrastructure:
     docker:
@@ -301,7 +304,7 @@ jobs:
              - project/backend/.env
 
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"      
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
   run-migrations:
     docker:
@@ -334,17 +337,17 @@ jobs:
             cd backend
             if grep -q "has been executed successfully" migrations.txt; then 
               curl -H "Content-Type: text/plain" -H "token: cc617a5f-16d6-4cf2-b341-92a478b4e9a8" \
-              --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              --request PUT --data "1" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             else
               curl -H "Content-Type: text/plain" -H "token: cc617a5f-16d6-4cf2-b341-92a478b4e9a8" \
-              --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID}
+              --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
      # Here's where you will add some code to rollback on failure
 
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
          
 
   deploy-frontend:
@@ -382,23 +385,22 @@ jobs:
             # your code here
             cd frontend
             npm run build
-            ls
+            ls -lha
 
       - run:
           # difference btw aws cp and aws sync: https://stackoverflow.com/questions/64728076/aws-s3-cp-vs-aws-s3-sync-behavior-and-cost
           name: Move front end files to S3 candidate bucket
           command: |
-            cd frontend
+            cd frontend/dist
             ls -lha
-            # Testing with the / for dist
-            #aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID} # This should copy to S3 bucket
-            aws s3 cp --recursive dist/ s3://udapeople-${CIRCLE_WORKFLOW_ID} # This should copy to S3 bucket
+            # This should copy to S3 bucket
+            aws s3 sync . s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --acl public-read --delete
             
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}" 
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}" 
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"     
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"     
 
   deploy-backend:
     docker:
@@ -430,63 +432,11 @@ jobs:
             npm run build
             ls -l # just want to see the list of files
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}" 
-       
-  deploy-backend-old:
-    docker:
-      # Docker image here that supports Ansible
-      - image: amazon/aws-cli
-    steps:
-      # Checkout code from git
-      - checkout
-      # Add ssh keys with fingerprint
-      - add_ssh_keys:
-          fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
-      # attach workspace
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            # your code here
-            yum install gzip tar python3-pip curl -y
-            curl -sL https://rpm.nodesource.com/setup_10.x | bash -
-            yum install nodejs npm -y
-            pip install -U ansible
-            cd frontend
-            npm install
-            npm audit fix
-            
-      - run:
-          name: Build app
-          command: |
-            cd backend
-            npm run build
-            ls -ahl
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"   
 
-      - run:
-          name: Create an archive backend
-          # will use this to copy into EC2 instance
-          command: |
-            tar cvzf backend.tar.gz backend
-            ls -alh
-
-      - run:
-          name: Deploy backend
-          command: |
-            # your code here
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
-
-      # Here's where you will add some code to rollback on failure
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
-      - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"  
-
-  smoke-test:
+  smoke-test-frontend:
     docker:
       # Lightweight Docker image
       #- image: alpine:latest
@@ -503,45 +453,76 @@ jobs:
             pip3 install awscli
 
       - run:
-          name: Get backend url
-          command: |
-            # your code here
-            BACKEND_DNS=$(curl -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" --request GET https://api.memstash.io/values/backend_dns)
-            API_URL="http://${BACKEND_DNS}:3030"
-            export API_URL
-
-      - run:
-          name: Backend smoke test.
-          command: |
-            # your code here
-            if curl -s --head $API_URL 
-            then
-              echo "Connected to backend EC2 instance"
-              return 0
-            else
-              echo "Failed to connect to backend EC2 instance"
-              return 1
-            fi
-
-      - run:
           name: Frontend smoke test.
           command: |
             # your code here
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID}.s3-website-us-east-1.amazonaws.com"
-            if curl -s --head $URL 
+            URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/index.html"
+            
+            #Check that you can connect and it has expected text
+            if curl -s $URL | grep "Welcome"
             then
-              echo "Connected to frontend using the S3 url"
+              echo "SUCCESS: Connected to frontend using the S3 URL: $URL"
               return 0
             else
-              echo "Failed to connect to frontend URL"
+              echo "FAILURE: Failed to connect to frontend URL: $URL"
+              return 1
+            fi
+
+            echo (curl -s $URL | grep "Welcome")
+
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}" 
+
+
+  smoke-test-backend:
+    docker:
+      # Lightweight Docker image
+      #- image: alpine:latest
+      - image: alpine:latest 
+    steps:
+      # Checkout code from git
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            # your code here
+            apk add --update curl tar gzip python3 py3-pip
+            pip3 install --upgrade pip
+            pip3 install awscli
+
+      - run:
+          name: Get backend smoke test
+          command: |
+            # your code here
+            BACKEND_DNS=$(curl -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" --request GET https://api.memstash.io/values/backend_dns)
+            API_URL="http://$BACKEND_DNS:3030/api/status"
+            BACKEND_URL=$(aws ec2 describe-instances \
+              --filters "Name=tag:Name,Values=backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --query "Reservations[*].Instances[*].[PublicDnsName]" \
+              --output text)
+
+            # curl "http://${BACKEND_URL}:3030/api/status"
+            URL="http://${BACKEND_URL}:3030/api/status"
+            echo "@@@TESTING: API_URL: $API_URL, BACKEND_URL: $BACKEND_URL"
+
+            if curl -s --head $URL #Check you can connect to backend
+            then
+              echo "SUCCESS: Connected to backend EC2 instance: $URL"
+              return 0
+            else
+              echo "FAILURE: Failed to connect to backend EC2 instance: $URL"
               return 1
             fi
 
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"  
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+
 
   cloudfront-update:
   # This stage promotes the candidate application to be the production app.
@@ -566,14 +547,14 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name udapeople-cloudfront \ 
-              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID}"\
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"\
               --tags project=udapeople &
 
       # Here's where you will add some code to rollback on failure  
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"      
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
   cleanup:
     docker:
@@ -635,9 +616,11 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations, deploy-frontend]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
+      - smoke-test-frontend:
+          requires: [deploy-backend]
+      - smoke-test-backend:
+          requires: [smoke-test-frontend]
       - cloudfront-update:
-          requires: [smoke-test]
+          requires: [smoke-test-backend]
       - cleanup:
           requires: [cloudfront-update]
