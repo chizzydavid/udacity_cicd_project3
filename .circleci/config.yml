@@ -15,7 +15,9 @@ commands:
             # Your code here
             echo s3://udapeople-<<parameters.workflow_id>>/
             echo uda-frontend-stack-<<parameters.workflow_id>>
-            #aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
+            
+            aws s3 rm --recursive s3://udapeople-<<parameters.workflow_id>>/
+            #aws s3 rb s3://udapeople-<<parameters.workflow_id>> --force
             aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
             aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
 
@@ -39,6 +41,7 @@ commands:
               #  Add revert code here. You can find this in the Getting Started section.
               npm run migrations:revert
             fi
+            exit 0
           when: on_fail
             
 jobs:
@@ -142,7 +145,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [frontend-build]
+          keys: [scan-frontend]
 
       # Your job code here
       - run:
@@ -157,6 +160,10 @@ jobs:
             npm install
             npm update
             npm audit fix --audit-level=critical --force
+      - save_cache:
+          paths: [frontend/node_modules]
+          key: scan-frontend
+      
 
 
   scan-backend:
@@ -168,7 +175,7 @@ jobs:
       - checkout
       # Restore from cache
       - restore_cache:
-          keys: [backend-build]
+          keys: [scan-backend]
       # Your job code here
       - run: 
           name: Fix critical dependency at back end
@@ -178,6 +185,10 @@ jobs:
             npm install
             npm update
             npm audit fix --audit-level=critical --force
+      - save_cache:
+          paths: [backend/node_modules]
+          key: scan-backend
+
 
   deploy-infrastructure:
     docker:
@@ -242,6 +253,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+            - project/backend/
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
@@ -377,7 +389,7 @@ jobs:
             # your code here
             BACKEND_DNS=$(curl -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" --request GET https://api.memstash.io/values/backend_dns)
             export API_URL="http://${BACKEND_DNS}:3030"
-            echo "${API_URL}"
+            echo "${API_URL}" > frontend/.env
 
       - run:
           name: Build frontend objects
@@ -418,7 +430,7 @@ jobs:
           name: Install dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install python3-pip -y # not sure if it is yum or apt
+            sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
             python --version
             pip3 --version
             pip3 install awscli
@@ -430,7 +442,43 @@ jobs:
             cd backend
             #npm i
             npm run build
-            ls -l # just want to see the list of files
+            ls -lha # just want to see the list of files
+      
+      # Why I am doing the tar this way:
+      # https://stackoverflow.com/questions/20318852/tar-file-changed-as-we-read-it 
+      - run:
+          name: Compress build objects to tar File
+          command: |
+            tar -C backend -czvf backend.tar.gz . #Change directory to backend, then tar
+            echo "@@@ TESTING current directory@@@""
+            ls
+
+            cd backend
+            echo "@@@ TESTING Backend directory@@@""
+            ls
+
+            #touch backend.tar.gz
+            #tar --exclude=backend.tar.gz -zcvf backend.tar.gz dist
+
+      - run:
+          name: Save compressed files into Ansible folder
+          command: |
+            echo "@@@ inside of main folder @@@"
+            ls
+            sudo cp backend.tar.gz .circleci/ansible/roles/deploy/files/backend.tar.gz
+
+      # - persist_to_workspace:
+      #      root: ~/
+      #      paths:
+      #        - project/backend/backend.tar.gz
+
+      - run:
+          name: Deploy Backend
+          no_output_timeout: 30m
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt deploy-backend.yml
+
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
@@ -456,10 +504,11 @@ jobs:
           name: Frontend smoke test.
           command: |
             # your code here
-            URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/index.html"
+            #URL="https://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com/index.html"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-${AWS_DEFAULT_REGION}.amazonaws.com"
             
             #Check that you can connect and it has expected text
-            if curl -s $URL | grep "Welcome"
+            if curl $URL | grep "Welcome"
             then
               echo "SUCCESS: Connected to frontend using the S3 URL: $URL"
               return 0
@@ -467,8 +516,6 @@ jobs:
               echo "FAILURE: Failed to connect to frontend URL: $URL"
               return 1
             fi
-
-            echo (curl -s $URL | grep "Welcome")
 
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
@@ -485,6 +532,8 @@ jobs:
     steps:
       # Checkout code from git
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
@@ -500,15 +549,14 @@ jobs:
             BACKEND_DNS=$(curl -H "token: 27705889-3d05-4084-b0fa-a1fbe209f3f1" --request GET https://api.memstash.io/values/backend_dns)
             API_URL="http://$BACKEND_DNS:3030/api/status"
             BACKEND_URL=$(aws ec2 describe-instances \
-              --filters "Name=tag:Name,Values=backend-deployment-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --query "Reservations[*].Instances[*].[PublicDnsName]" \
               --output text)
 
-            # curl "http://${BACKEND_URL}:3030/api/status"
-            URL="http://${BACKEND_URL}:3030/api/status"
-            echo "@@@TESTING: API_URL: $API_URL, BACKEND_URL: $BACKEND_URL"
+            URL="http://$BACKEND_URL:3030/api/status"
 
-            if curl -s --head $URL #Check you can connect to backend
+            #Check you can connect to backend
+            if curl $URL | grep '"status":"ok"'
             then
               echo "SUCCESS: Connected to backend EC2 instance: $URL"
               return 0
@@ -542,13 +590,14 @@ jobs:
 
       - run:
           name: Update cloudfront distribution
+          no_output_timeout: 30m
           command: |
             # your code here
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
               --stack-name udapeople-cloudfront \ 
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"\
-              --tags project=udapeople &
+              --tags project="udapeople-${CIRCLE_WORKFLOW_ID:0:7}-app"
 
       # Here's where you will add some code to rollback on failure  
       - destroy-environment:

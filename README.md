@@ -39,6 +39,8 @@ Note the actually code for the application that is being deployed is in the back
 
 To understand what this project is doing.  I am listing out jobs/steps in the pipeline (i.e., workflow), and trying to explain them. Note, each job is done within a container.  We specify the container to use.
 
+```![Summary of Process](./img/proje)```
+
 1. **Build Frontend**: Use this container to take the front end code and create the binary (computer readable version of the code) that will be executed. This requires installing dependencies, checking the code style fits expectation, and then finally creating the binary. To prevent constantly having to install the dependencies, after the first run of the workflow, all subsequent workflows will use the dependencies store in the cache.
 
 2. **Build Backend**: Similar to build front end, but use this container to build (compile) the backend binary.  Want to make sure there is no syntax errors.
@@ -115,6 +117,7 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
   - Had to use this command a lot to save: `:w !sudo tee %`, then type (L) load <https://stackoverflow.com/questions/14948441/vim-cant-save-file-e212/14948510>
 - [SCP command for copying from local machine to EC2 instance](https://angus.readthedocs.io/en/2014/amazon/transfer-files-between-instance.html)
 - [Installing Atom on Ubuntu linux machine](https://linuxize.com/post/how-to-install-atom-text-editor-on-ubuntu-20-04/)
+- [Tar options](https://www.gnu.org/software/tar/manual/html_node/Option-Summary.html#Option-Summary)
 
 ---
 
