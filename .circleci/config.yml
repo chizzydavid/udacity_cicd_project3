@@ -467,11 +467,6 @@ jobs:
             ls
             sudo cp backend.tar.gz .circleci/ansible/roles/deploy/files/backend.tar.gz
 
-      # - persist_to_workspace:
-      #      root: ~/
-      #      paths:
-      #        - project/backend/backend.tar.gz
-
       - run:
           name: Deploy Backend
           no_output_timeout: 30m
