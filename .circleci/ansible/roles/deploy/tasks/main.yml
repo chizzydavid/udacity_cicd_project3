@@ -27,14 +27,6 @@
     path: /home/ubuntu/backend
     state: directory
 
-# - name: "move files to server"
-#   become: true
-#   copy:
-#     src: /root/project/backend/dist
-#     dest: /home/ubuntu/backend
-#     remote_src: yes
-#     mode: '0777'
-
 - name: "Copy backend tar.gz file and unzip it"
   become: yes
   unarchive:
@@ -50,35 +42,3 @@
     cd /home/ubuntu/backend
     pm2 start npm --name backend -- start
     pm2 ls
-
-- name: Install Promethesus Node Exporter
-  become: true
-  shell: |
-    sudo useradd --no-create-home node_exporter
-    wget https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
-    tar xzf node_exporter-1.0.1.linux-amd64.tar.gz
-    sudo cp node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/node_exporter
-    rm -rf node_exporter-1.0.1.linux-amd64.tar.gz node_exporter-1.0.1.linux-amd64
-
-- name: Copy node-exporter.service file to remote server
-  become: true
-  copy:
-    src: node-exporter.service
-    dest: /etc/systemd/system/node-exporter.service
-
-- name: Configure systemd for Prometheus
-  become: true
-  shell: |
-    sudo systemctl daemon-reload
-    sudo systemctl enable node-exporter
-
-- name: Start Node Exporter Service
-  become: true
-  shell: |
-    sudo systemctl start node-exporter
-    sudo systemctl status node-exporter
-
-# - name: start pm2 for dist/main.js
-#   shell: pm2 start main.js
-#   args:
-#     chdir: /home/ubuntu/backend/dist
