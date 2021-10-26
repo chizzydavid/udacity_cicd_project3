@@ -163,8 +163,7 @@ jobs:
       - save_cache:
           paths: [frontend/node_modules]
           key: scan-frontend
-      
-
+    
 
   scan-backend:
     docker:
@@ -258,6 +257,7 @@ jobs:
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
+
   configure-infrastructure:
     docker:
       # Docker image here that supports Ansible
@@ -317,6 +317,7 @@ jobs:
 
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
+
 
   run-migrations:
     docker:
