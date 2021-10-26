@@ -19,7 +19,7 @@ Resources:
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 3030
+          FromPort: 3030 # Port for App
           ToPort: 3030
           CidrIp: 0.0.0.0/0
 
@@ -36,6 +36,12 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
+
+  AssociateBackendElasticIP:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: eipalloc-06ddec8f5cc5d63a3
+      InstanceId: !Ref EC2Instance
 
 Outputs:
   BackendURL:
