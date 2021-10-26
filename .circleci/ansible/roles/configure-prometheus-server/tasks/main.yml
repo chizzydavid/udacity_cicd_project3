@@ -1,7 +1,22 @@
-- name: "upgrade packages."
+# Trying to replicate: https://codewizardly.com/prometheus-on-aws-ec2-part1/
+
+# Prometheus Server Configuration
+# ----------
+- name: Creates Prometheus directory 
+  file:
+    path: /etc/prometheus
+    state: directory
+
+- name: "add prometheus server configuration."
   become: true
-  apt:
-    upgrade: "yes"
+  copy:
+    src: prometheus.yml
+    dest: /etc/prometheus/
+
+- name: Creates Prometheus directory 
+  file:
+    path: /var/lib/prometheus
+    state: directory
 
 - name: "install prometheus server."
   unarchive:
@@ -13,7 +28,20 @@
   become: true
   copy:
     src: /tmp/prometheus-2.30.3.linux-amd64/prometheus
-    dest: /usr/local/bin/prometheus
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: '0777'
+
+- name: "Copy console file to appropriate locations"
+  shell: |
+    sudo cp -r /tmp/prometheus-2.30.3.linux-amd64/consoles /etc/prometheus
+    sudo cp -r /tmp/prometheus-2.30.3.linux-amd64/console_libraries /etc/prometheus
+
+- name: "move promtool binary to /usr/local/bin."
+  become: true
+  copy:
+    src: /tmp/prometheus-2.30.3.linux-amd64/promtool
+    dest: /usr/local/bin/
     remote_src: yes
     mode: '0777'
 
@@ -22,6 +50,31 @@
   copy:
     src: prometheus.service
     dest: /etc/systemd/system/
+
+- name: "Change file permissions"
+  shell: |
+    sudo chown prometheus:prometheus /etc/prometheus
+    sudo chown prometheus:prometheus /usr/local/bin/prometheus
+    sudo chown prometheus:prometheus /usr/local/bin/promtool
+    sudo chown -R prometheus:prometheus /etc/prometheus/consoles
+    sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
+    sudo chown -R prometheus:prometheus /var/lib/prometheus
+
+- name: "enable prometheus service"
+  become: true
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: prometheus
+    enabled: yes
+
+# Alert Manager Configuration
+# Resource: https://codewizardly.com/prometheus-on-aws-ec2-part4/
+# ----------------------------
+- name: Creates Prometheus directory 
+  file:
+    path: /var/lib/alertmanager
+    state: directory
 
 - name: "install prometheus Alert Manager."
   unarchive:
@@ -33,14 +86,14 @@
   become: true
   copy:
     src: /tmp/alertmanager-0.23.0.linux-amd64/alertmanager
-    dest: /usr/local/bin/prometheus
+    dest: /usr/local/bin/
     remote_src: yes
     mode: '0777'
 
-- name: "enable prometheus service"
+- name: "move prometheus AlertManager binary to /usr/local/bin."
   become: true
-  systemd:
-    state: restarted
-    daemon_reload: yes
-    name: prometheus
-    enabled: yes
+  copy:
+    src: /tmp/alertmanager-0.23.0.linux-amd64/amtool
+    dest: /usr/local/bin/
+    remote_src: yes
+    mode: '0777'
