@@ -114,12 +114,29 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
 - [Setting up a prometheus server on an EC2 instance](https://codewizardly.com/prometheus-on-aws-ec2-part1/)
 - [Setting up Prometheus Service Discovery on AWS EC2](https://codewizardly.com/prometheus-on-aws-ec2-part3/)
 - [How to use the vi editor on linux](https://staff.washington.edu/rells/R110/)
-  - Had to use this command a lot to save: `:w !sudo tee %`, then type (L) load <https://stackoverflow.com/questions/14948441/vim-cant-save-file-e212/14948510>
+  - Had to use this command a lot to save: `:w !sudo tee %`, then type (L) load <https://stackoverflow.com/questions/14948441/vim-cant-save-file-e212/14948510>.  But if I use `sudo vi <filename>` you will not run into this issue.
 - [SCP command for copying from local machine to EC2 instance](https://angus.readthedocs.io/en/2014/amazon/transfer-files-between-instance.html)
 - [Installing Atom on Ubuntu linux machine](https://linuxize.com/post/how-to-install-atom-text-editor-on-ubuntu-20-04/)
 - [Tar options](https://www.gnu.org/software/tar/manual/html_node/Option-Summary.html#Option-Summary)
 - [Understanding the Linux `chown` command](https://phoenixnap.com/kb/linux-chown-command-with-examples)
 - [Ansible Command Reference](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html).  For ansible you really need to look at collections.  Each collection has their own commands.
+- [Linux Systemctl & systemd](https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units)
+  - `systemd` is an **init system** (*initialize services (aka. applications running in the background) that should start after a reboot of the linxus kernel*) and **system manager**. `systemctl` command is the central management tool for controlling the init system. The `prometheus.service` file is an example of an **unit file**. The `systemd` understands how to read the units within an unit file. Units are categorized by the type of resource they represent and they are defined with files known as unit files. The type of each unit can be inferred from the suffix on the end of the file.For service management tasks, the target unit will be service units, which have unit files with a suffix of .service. However, for most service management commands, you can actually leave off the .service suffix, as systemd is smart enough to know that you probably want to operate on a service when using service management commands.
+  - starting and stoppint a service `sudo systemctl start application.service` or `sudo systemctl start application`.  The command format for systemctl is: `sudo systemctl <command> <application.service>`. Other commands to use with systemctl:
+    - `stop`: stop a currently running service
+    - `restart`: restart a service.  Usually do if you want the service to pick up a new configuration.
+    - `reload`: if the application in question is able to reload its configuration files (without restarting), you can issue the reload command to initiate that process.
+    - `reload-or-restart`: This will reload the configuration in-place if available. Otherwise, it will restart the service so the new configuration is picked up.
+    - `enable`: to start a service at boot. This will create a symbolic link from the system’s copy of the service file (usually in /lib/systemd/system or /etc/systemd/system) into the location on disk where systemd looks for autostart files (usually /etc/systemd/system/some_target.target.wants . Keep in mind that enabling a service does not start it in the current session. If you wish to start the service and also enable it at boot, you will have to issue both the start and enable commands.
+    - `disable`: to stop a service from running at boot. Removes the symbolic link that indicated that the service should be started automatically.
+    - `status`: To check the status of a service on a system. This will provide you with the service state, the cgroup hierarchy, and the first few log lines.
+      - `is-active`, `is-enabled`, `is-failed`, `is-disabled`. Are specific statuses that you want to check for.  EX: `sudo systemctl is-active application.service`.  It will return a 0 or 1.  However, you will need to look at each sub status to know what 0 and 1 means.  It is also in this reference url.
+    - `list-units` : This will show you a list of all of the units that systemd currently has active on the system. Output:
+      - UNIT: The systemd unit name
+      - LOAD: Whether the unit’s configuration has been parsed by systemd. The configuration of loaded units is kept in memory.
+      - ACTIVE: A summary state about whether the unit is active. This is usually a fairly basic way to tell if the unit has started successfully or not
+      - SUB: This is a lower-level state that indicates more detailed information about the unit. This often varies by unit type, state, and the actual method in which the unit runs.
+      - DESCRIPTION: A short textual description of what the unit is/does.
 
 ---
 
