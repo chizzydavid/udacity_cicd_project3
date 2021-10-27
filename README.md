@@ -118,6 +118,8 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
 - [SCP command for copying from local machine to EC2 instance](https://angus.readthedocs.io/en/2014/amazon/transfer-files-between-instance.html)
 - [Installing Atom on Ubuntu linux machine](https://linuxize.com/post/how-to-install-atom-text-editor-on-ubuntu-20-04/)
 - [Tar options](https://www.gnu.org/software/tar/manual/html_node/Option-Summary.html#Option-Summary)
+- [Understanding the Linux `chown` command](https://phoenixnap.com/kb/linux-chown-command-with-examples)
+- [Ansible Command Reference](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html).  For ansible you really need to look at collections.  Each collection has their own commands.
 
 ---
 

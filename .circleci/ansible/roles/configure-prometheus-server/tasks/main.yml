@@ -2,6 +2,10 @@
 
 # Prometheus Server Configuration
 # ----------
+- name: "Create new user named prometheus with no home directory"
+  shell: |
+    sudo useradd --no-create-home prometheus
+
 - name: Creates Prometheus directory 
   file:
     path: /etc/prometheus
@@ -51,7 +55,7 @@
     src: prometheus.service
     dest: /etc/systemd/system/
 
-- name: "Change file permissions"
+- name: "Change file owner to user and group prometheus"
   shell: |
     sudo chown prometheus:prometheus /etc/prometheus
     sudo chown prometheus:prometheus /usr/local/bin/prometheus
@@ -97,3 +101,11 @@
     dest: /usr/local/bin/
     remote_src: yes
     mode: '0777'
+
+- name: "enable prometheus alert manager service"
+  become: true
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: alertmanager
+    enabled: yes
