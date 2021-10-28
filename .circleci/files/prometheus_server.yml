@@ -17,7 +17,7 @@ Resources:
         FromPort: 9090 # Port for prometheus server
         ToPort: 9090
         CidrIp: 0.0.0.0/0
-      - IpProtocol: tcplog
+      - IpProtocol: tcp
         FromPort: 9093 # Port for prometheus AlertManager service
         ToPort: 9093
         CidrIp: 0.0.0.0/0
