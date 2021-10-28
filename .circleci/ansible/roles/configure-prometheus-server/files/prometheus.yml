@@ -36,6 +36,7 @@ scrape_configs:
       - region: us-east-1
         access_key: AKIAZR6MWOPGAODHX7GT
         secret_key: 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
+        profile: udacity_devops
         port: 9100
 
   - job_name: 'node_exporter'
