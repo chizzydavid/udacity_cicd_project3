@@ -43,6 +43,6 @@ Resources:
 Outputs:
   PrometheusURL:
     Description: The backend DNS (host name)
-    Value: !Join ["", ["http://", !GetAtt EC2Instance.PublicDnsName],":9090"]
+    Value: !Join ["", ["http://", !GetAtt PrometheusEC2Instance.PublicDnsName],":9090"]
     Export:
       Name: PrometheusMonitorURL
