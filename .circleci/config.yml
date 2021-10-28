@@ -230,22 +230,22 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo "[all]" > inventory.txt #Creates new file
+            echo "[all]" > .circleci/ansible/inventory.txt #Creates new file
             aws ec2 describe-instances \
              --filters "Name=tag:project,Values=udacity-project3-backend" \
              --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
-             cat inventory.txt
+             cat .circleci/ansible/inventory.txt
 
       - run:
           name: Add prometheus ip to ansible inventory
           command: |
-            echo "[all]" >> .circleci/ansible/inventory_prometheus.txt
+            echo "[all]" > .circleci/ansible/inventory_prometheus.txt
             aws ec2 describe-instances \
              --filters "Name=tag:Name,Values=prometheus-server" \
              --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> .circleci/ansible/inventory_prometheus.txt # Appends results to inventory.txt
-             cat inventory_prometheus.txt
+             cat .circleci/ansible/inventory_prometheus.txt
 
 
       - run:
