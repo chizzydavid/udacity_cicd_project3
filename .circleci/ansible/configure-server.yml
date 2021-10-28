@@ -32,6 +32,6 @@
     
   roles:
     # Your code here
-    #- configure-prometheus-server
+    - configure-prometheus-server
+    - configure-prometheus-alertmanager
     - configure-server
-    - configure-prometheus-node-exporter
