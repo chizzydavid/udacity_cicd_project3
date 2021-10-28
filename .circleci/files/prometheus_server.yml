@@ -6,18 +6,34 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow port 22 and prometheus ports
+      VpcId: vpc-b4afc2c9 # TO DO: Parameterize!
+      SubnetId: subnet-bde6b7db
+      # What inbound traffic is allowed
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22 # Admin SSH
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 9100 # Port for prometheus server
-          ToPort: 9100
+          FromPort: 9090 # Port for prometheus server
+          ToPort: 9090
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 9093 # Port for prometheus AlertManager service
           ToPort: 9093
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
           CidrIp: 0.0.0.0/0
 
   PrometheusEC2Instance:

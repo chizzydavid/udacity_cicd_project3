@@ -13,14 +13,31 @@ Resources:
     Properties:
       GroupName: !Sub UdaPeople-${ID}
       GroupDescription: Allow port 22 and port 3030.
+      VpcId: vpc-b4afc2c9 # TO DO: Parameterize!
+      SubnetId: subnet-cc1b7ffd
+      # What inbound traffic is allowed
       SecurityGroupIngress:
-        - IpProtocol: tcp
+        - IpProtocol: tcp # admin ssh
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 3030 # Port for App
+          FromPort: 3030 # port for udapeople App
           ToPort: 3030
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9100 # port for node exporter
+          ToPort: 9100
+          CidrIp: 0.0.0.0/0
+      # What outbound traffic is allowed
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
           CidrIp: 0.0.0.0/0
 
   EC2Instance:
