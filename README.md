@@ -107,6 +107,25 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
 2. Run this command, if necessary, to ensure your key is not publicly viewable. `chmod 400 <key-file.cer/pem>`
 3. In terminal enter the following: `ssh -i <key-file.cer or key-file.pem> <user>@<IP-address>` where user is the OS default user: (e.g, `ubuntu` for Linux Ubuntu OS, `ec2-user` for Amazon distributions. And IP-Address can be the ip-address or the dns url
 
+#### To Ping a Remote Machine a certain amount of times
+
+The following command pings the remote computer identified by the ip-address: 192.168.2.200, 5 times.  The -c option is the key.
+`ping -c 5 192.168.2.200`
+
+Determining how much info, if you add `-v` (you will get verbose information), but if you add `-q` you will get summary information (quiet mode). EX
+`ping -c 5 -q 192.168.2.200 # Example of quiet mode ping`
+
+#### Testing Backend and Promethesus Server infrastructure
+
+```bash
+
+  # Create EC2 instance for Backend 
+  aws cloudformation create-stack --profile <profile_name> --stack-name test-backend-stack --template-body file://backend.yml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" --region=us-east-1
+
+  # Create EC2 Instance for Prometheus Server
+  aws cloudformation create-stack --profile <profile_name> --stack-name test-prometheus-stack --template-body file://prometheus_server.yml --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" --region=us-east-1
+```
+
 ### Random help links
 
 - [AWS CLI S3 Command Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html)
@@ -119,6 +138,7 @@ In CircleCI an executor is related to what base operating system (MacOS, Linus, 
 - [SCP command for copying from local machine to EC2 instance](https://angus.readthedocs.io/en/2014/amazon/transfer-files-between-instance.html)
 - [Installing Atom on Ubuntu linux machine](https://linuxize.com/post/how-to-install-atom-text-editor-on-ubuntu-20-04/)
 - [Tar options](https://www.gnu.org/software/tar/manual/html_node/Option-Summary.html#Option-Summary)
+- [All About Ping](https://www.redhat.com/sysadmin/ping-usage-basics)
 - [Understanding the Linux `chown` command](https://phoenixnap.com/kb/linux-chown-command-with-examples)
 - [Ansible Command Reference](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/index.html).  For ansible you really need to look at collections.  Each collection has their own commands.
 - [Linux Systemctl & systemd](https://www.digitalocean.com/community/tutorials/how-to-use-systemctl-to-manage-systemd-services-and-units)
