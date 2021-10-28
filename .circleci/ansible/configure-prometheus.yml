@@ -32,4 +32,5 @@
     
   roles:
     # Your code here
-    - configure-server
+    - configure-prometheus-server
+    - configure-prometheus-alertmanager

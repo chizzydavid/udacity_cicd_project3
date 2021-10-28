@@ -217,8 +217,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project=udacity-project3-frontend \
               --stack-name "uda-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
-
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
 
       - run:
           name: Deploy Prometheus Server
@@ -237,6 +236,17 @@ jobs:
              --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
              cat inventory.txt
+
+      - run:
+          name: Add prometheus ip to ansible inventory
+          command: |
+            echo "[all]" >> .circleci/ansible/inventory_prometheus.txt
+            aws ec2 describe-instances \
+             --filters "Name=tag:Name,Values=prometheus-server" \
+             --query 'Reservations[*].Instances[*].PublicDnsName' \
+             --output text >> .circleci/ansible/inventory_prometheus.txt # Appends results to inventory.txt
+             cat inventory_prometheus.txt
+
 
       - run:
           name: Persist backend ip to storage
@@ -261,6 +271,7 @@ jobs:
           root: ~/
           paths:
             - project/.circleci/ansible/inventory.txt
+            - project/.circleci/ansible/inventory_prometheus.txt
             - project/backend/
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
@@ -309,6 +320,14 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             cat .env
+
+      - run:
+          name: Configure Prometheus Server
+          no_output_timeout: 15m #time out after 15 minutes
+          command: |
+            #Your code here
+            cd .circleci/ansible
+            ansible-playbook -i inventory_prometheus.txt configure-prometheus.yml
 
       - run:
           name: Configure server
@@ -459,21 +478,13 @@ jobs:
       - run:
           name: Compress build objects to tar File
           command: |
+            # Save to top level folder of project
             tar -C backend -czvf backend.tar.gz . #Change directory to backend, then tar
-            echo "@@@ TESTING current directory@@@""
             ls
-
-            cd backend
-            echo "@@@ TESTING Backend directory@@@""
-            ls
-
-            #touch backend.tar.gz
-            #tar --exclude=backend.tar.gz -zcvf backend.tar.gz dist
 
       - run:
           name: Save compressed files into Ansible folder
           command: |
-            echo "@@@ inside of main folder @@@"
             ls
             sudo cp backend.tar.gz .circleci/ansible/roles/deploy/files/backend.tar.gz
 

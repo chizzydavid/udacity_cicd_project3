@@ -32,7 +32,7 @@ Resources:
       ImageId: ami-09e67e426f25ce0d7 #ami-0747bdcabd34c712a #ami-00ddb0e5626798373 
       Tags:
         - Key: Name
-          Value: Prometheus Server
+          Value: prometheus-server
 
   AssociatePrometheusElasticIP:
     Type: AWS::EC2::EIPAssociation
