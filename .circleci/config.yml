@@ -224,18 +224,18 @@ jobs:
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/prometheus_server.yml \
-              --stack-name prometheus-server-stack
+              --stack-name uda-prometheus-server-stack
 
       # Variables in bash: https://ryanstutorials.net/bash-scripting-tutorial/bash-variables.php
       - run:
           name: Add back-end ip to ansible inventory
           command: |
-            echo "[all]" > inventory.txt #Creates new file
             aws ec2 describe-instances \
              --filters "Name=tag:project,Values=udacity-project3-backend" \
              --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
              cat .circleci/ansible/inventory.txt
+             cat .circleci/ansible/inventory_prometheus.txt
 
       - run:
           name: Persist backend ip to storage
@@ -572,10 +572,10 @@ jobs:
             fi
 
       # Here's where you will add some code to rollback on failure
-      # - destroy-environment:
-      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
 
   cloudfront-update:
