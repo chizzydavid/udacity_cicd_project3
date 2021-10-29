@@ -53,6 +53,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub backend-${ID}
+        - Key: project
+          Value: udacity-project3-backend
 
   AssociateBackendElasticIP:
     Type: AWS::EC2::EIPAssociation
