@@ -9,39 +9,44 @@ Resources:
       VpcId: vpc-b4afc2c9 # TO DO: Parameterize! This is the default, so I don't need to specify
       # What inbound traffic is allowed
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 22 # Admin SSH
-        ToPort: 22
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 9090 # Port for prometheus server
-        ToPort: 9090
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 9093 # Port for prometheus AlertManager service
-        ToPort: 9093
-        CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22 # Admin SSH
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090 # Port for prometheus server
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9093 # Port for prometheus AlertManager service
+          ToPort: 9093
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80 # Port for prometheus AlertManager service
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
       SecurityGroupEgress:
-      - IpProtocol: tcp
-        FromPort: 80
-        ToPort: 80
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 9090
-        ToPort: 9090
-        CidrIp: 0.0.0.0/0
-      - IpProtocol: tcp
-        FromPort: 443
-        ToPort: 443
-        CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 9090
+          ToPort: 9090
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
 
   PrometheusEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t3.small
-      SubnetId: subnet-716a3550 # TO DO: PARAMETERIZE
+      SubnetId: subnet-8ce7b5d3 # TO DO: PARAMETERIZE
       SecurityGroupIds:
         - Ref: PrometheusSecurityGroup
+        #- sg-10261d0a # all access
       KeyName: udacity-project3-key # If you use another key pair name, you should change this value to match.
       # If this ami id is not available for you, you can find another (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/finding-an-ami.html)
       # Ubuntu 18 or higher works fine
