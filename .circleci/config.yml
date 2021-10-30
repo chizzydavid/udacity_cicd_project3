@@ -309,15 +309,6 @@ jobs:
             cat .env
 
       - run:
-          name: Configure Prometheus Server
-          no_output_timeout: 15m #time out after 15 minutes
-          command: |
-            #Your code here
-            cd .circleci/ansible
-            ansible-playbook -i inventory.txt configure-prometheus.yml
-            cat inventory.txt
-
-      - run:
           name: Configure server
           no_output_timeout: 15m #time out after 15 minutes
           command: |
@@ -326,6 +317,15 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
       #Here's where you will add some code to rollback on failure
+
+      - run:
+          name: Configure Prometheus Server
+          no_output_timeout: 15m #time out after 15 minutes
+          command: |
+            #Your code here
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-prometheus.yml
+            cat inventory.txt
 
       - persist_to_workspace:
            root: ~/

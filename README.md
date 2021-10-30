@@ -115,6 +115,10 @@ The following command pings the remote computer identified by the ip-address: 19
 Determining how much info, if you add `-v` (you will get verbose information), but if you add `-q` you will get summary information (quiet mode). EX
 `ping -c 5 -q 192.168.2.200 # Example of quiet mode ping`
 
+#### To Test port function
+
+Log into the machine and type `telnet localhost 3030`, for instance, if you are interested in testing port 3030.
+
 #### Testing Backend and Promethesus Server infrastructure
 
 ```bash
