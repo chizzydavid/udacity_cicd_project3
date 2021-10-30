@@ -20,7 +20,7 @@ commands:
             #aws s3 rb s3://udapeople-<<parameters.workflow_id>> --force
             aws cloudformation delete-stack --stack-name "uda-frontend-stack-<<parameters.workflow_id>>"
             aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
-            aws cloudformation delete-stack --stack-name prometheus-server-stack
+            aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
 
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
