@@ -235,7 +235,6 @@ jobs:
              --query 'Reservations[*].Instances[*].PublicDnsName' \
              --output text >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
              cat .circleci/ansible/inventory.txt
-             cat .circleci/ansible/inventory_prometheus.txt
 
       - run:
           name: Persist backend ip to storage
@@ -315,9 +314,8 @@ jobs:
           command: |
             #Your code here
             cd .circleci/ansible
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook -i inventory_prometheus.txt configure-prometheus.yml
-            cat inventory_prometheus.txt
+            ansible-playbook -i inventory.txt configure-prometheus.yml
+            cat inventory.txt
 
       - run:
           name: Configure server
@@ -325,7 +323,6 @@ jobs:
           command: |
             # Your code here
             cd .circleci/ansible
-            export ANSIBLE_HOST_KEY_CHECKING=False
             ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
       #Here's where you will add some code to rollback on failure

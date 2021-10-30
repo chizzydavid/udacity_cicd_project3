@@ -1,7 +1,7 @@
 ---
 
 - name: "configuration play." 
-  hosts: web
+  hosts: prometheus # Group name in the inventory.txt file
   user: ubuntu
   become: true
   become_method: sudo
