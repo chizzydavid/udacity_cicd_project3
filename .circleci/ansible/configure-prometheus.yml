@@ -1,8 +1,8 @@
 ---
 
-- name: "configuration play." 
+- name: "configure prometheus play." 
   hosts: prometheus # Group name in the inventory.txt file
-  user: ubuntu
+  user: ubuntu # name of user on EC2 instance
   become: true
   become_method: sudo
   become_user: root
@@ -13,7 +13,7 @@
     - ansible_stdout_callback: yaml
 
   pre_tasks:
-    - name: "wait 600 seconds for target connection to become reachable/usable."
+    - name: "wait 700 seconds for target connection to become reachable/usable."
       # Your code here
       wait_for_connection:
         timeout: 700 # wait for 700 seconds

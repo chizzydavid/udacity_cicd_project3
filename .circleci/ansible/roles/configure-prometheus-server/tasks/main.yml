@@ -2,6 +2,11 @@
 
 # Prometheus Server Configuration
 # ----------
+- name: "Upgrade packages."
+  become: true
+  apt:
+    upgrade: "yes"
+
 - name: "Create new user named prometheus with no home directory"
   shell: |
     sudo useradd --no-create-home prometheus
@@ -11,7 +16,7 @@
     path: /etc/prometheus
     state: directory
 
-- name: "add prometheus server configuration."
+- name: "Add prometheus server configuration."
   become: true
   copy:
     src: prometheus.yml
@@ -22,13 +27,13 @@
     path: /var/lib/prometheus
     state: directory
 
-- name: "install prometheus server."
+- name: "Install prometheus server."
   unarchive:
     src: https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz
     dest: /tmp
     remote_src: yes
 
-- name: "move prometheus server binary to /usr/local/bin."
+- name: "Move prometheus server binary to /usr/local/bin."
   become: true
   copy:
     src: /tmp/prometheus-2.30.3.linux-amd64/prometheus
@@ -41,7 +46,7 @@
     sudo cp -r /tmp/prometheus-2.30.3.linux-amd64/consoles /etc/prometheus
     sudo cp -r /tmp/prometheus-2.30.3.linux-amd64/console_libraries /etc/prometheus
 
-- name: "move promtool binary to /usr/local/bin."
+- name: "Move promtool binary to /usr/local/bin."
   become: true
   copy:
     src: /tmp/prometheus-2.30.3.linux-amd64/promtool
@@ -49,7 +54,7 @@
     remote_src: yes
     mode: '0777'
 
-- name: "add prometheus server configuration."
+- name: "Add prometheus unit file to systemd folder."
   become: true
   copy:
     src: prometheus.service
@@ -64,7 +69,7 @@
     sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
     sudo chown -R prometheus:prometheus /var/lib/prometheus
 
-- name: "enable prometheus service"
+- name: "Enable prometheus service"
   become: true
   systemd:
     state: restarted
