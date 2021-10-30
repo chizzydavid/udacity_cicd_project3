@@ -21,13 +21,25 @@
     remote_src: yes
     mode: '0777'
 
-- name: "move prometheus AlertManager binary to /usr/local/bin."
+- name: "move prometheus Amtool binary to /usr/local/bin."
   become: true
   copy:
     src: /tmp/alertmanager-0.23.0.linux-amd64/amtool
     dest: /usr/local/bin/
     remote_src: yes
     mode: '0777'
+
+- name: "Add alert manager configuration to prometheus folder."
+  become: true
+  copy:
+    src: alertmanager.yml
+    dest: /etc/prometheus/
+
+- name: "Add prometheus unit file to systemd folder."
+  become: true
+  copy:
+    src: alertmanager.service
+    dest: /etc/systemd/system/
 
 - name: "enable prometheus alert manager service"
   become: true
