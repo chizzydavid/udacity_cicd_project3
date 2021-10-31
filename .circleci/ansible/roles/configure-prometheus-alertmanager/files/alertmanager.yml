@@ -1,16 +1,17 @@
 global:
-  slack_api_url: '<slack_webhook_url>'
+  slack_api_url: 'https://hooks.slack.com/services/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'
 
 route:
   receiver: slack-alert-notice
-  group_by: [Instances]
+  group_by: [alertname, datacenter, app]
 
 
 receivers:
   - name: slack-alert-notice
     slack_configs:
-    - channel: '#alert'
-      text: ''
+    - channel: '#alerts'
+      title: "{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}"
+      text: "{{ range .Alerts }}{{ .Annotations.description }}\n{{ end }}"
 
 # route:
 #   group_by: [Alertname]
