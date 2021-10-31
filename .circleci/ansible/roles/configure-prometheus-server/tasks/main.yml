@@ -22,6 +22,12 @@
     src: prometheus.yml
     dest: /etc/prometheus/
 
+- name: "Add prometheus alert manager rules.yml configuration."
+  become: true
+  copy:
+    src: rules.yml
+    dest: /etc/prometheus/
+
 - name: Creates Prometheus directory 
   file:
     path: /var/lib/prometheus

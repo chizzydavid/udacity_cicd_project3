@@ -1,5 +1,6 @@
+# Resource: https://prometheus.io/docs/alerting/latest/notification_examples/
 groups:
-- name: Down
+- name: Instances
   rules:
   - alert: InstanceDown
     expr: up == 0
@@ -7,5 +8,5 @@ groups:
     labels:
       severity: 'critical'
     annotations:
-      summary: "Instance  is down"
-      description: " of job  has been down for more than 3 minutes."
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 3 minutes."
