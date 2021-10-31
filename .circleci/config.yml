@@ -203,6 +203,13 @@ jobs:
             yum install -y tar gzip
 
       - run:
+          name: Deploy Prometheus Server
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/prometheus_server.yml \
+              --stack-name uda-prometheus-server-stack
+
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
@@ -219,17 +226,24 @@ jobs:
               --stack-name "uda-frontend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
 
-      - run:
-          name: Deploy Prometheus Server
-          command: |
-            aws cloudformation deploy \
-              --template-file .circleci/files/prometheus_server.yml \
-              --stack-name uda-prometheus-server-stack
-
       # Variables in bash: https://ryanstutorials.net/bash-scripting-tutorial/bash-variables.php
+      - run:
+          name: Add prometheus server ip to ansible inventory
+          command: |
+            PROMETHEUS_SERVER_IP=(aws ec2 describe-instances \
+             --filters "Name=tag:project,Values=udacity-project3-backend" \
+             --query 'Reservations[*].Instances[*].PublicDnsName' \
+             --output text)
+            
+            CMD="prometheus-server ansible_host=$PROMETHEUS_SERVER"
+            echo $CMD
+            echo $CMD >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
+            cat .circleci/ansible/inventory.txt
+
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            echo "[backend]" >> .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
              --filters "Name=tag:project,Values=udacity-project3-backend" \
              --query 'Reservations[*].Instances[*].PublicDnsName' \
@@ -309,7 +323,7 @@ jobs:
             cat .env
 
       - run:
-          name: Configure server
+          name: Configure Backend Server
           no_output_timeout: 15m #time out after 15 minutes
           command: |
             # Your code here
@@ -379,7 +393,7 @@ jobs:
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
          
-
+  # Deploys the static web site (front-end of the application)
   deploy-frontend:
     docker:
       # Docker image here that supports AWS CLI
@@ -432,6 +446,7 @@ jobs:
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"     
 
+  # Starts the backend server for the app (application backend)
   deploy-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -484,8 +499,8 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
 
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"   
 

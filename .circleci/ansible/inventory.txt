@@ -1,4 +1,3 @@
 [prometheus]
-prometheus-server ansible_host=54.167.22.106 ## AWS Elastic IP for prometheus server
+## AWS Elastic IP for prometheus server
 
-[backend]

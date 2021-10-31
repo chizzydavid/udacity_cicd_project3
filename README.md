@@ -163,6 +163,10 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
       - SUB: This is a lower-level state that indicates more detailed information about the unit. This often varies by unit type, state, and the actual method in which the unit runs.
       - DESCRIPTION: A short textual description of what the unit is/does.
 
+### Things to protect (SECURITY)
+
+-**Webhooks** are secrets you are need to protect.  Same as **IP addresses** to your instances.  That is why, in this project we are using environment variables and memstash (or another feature store application) to store items that could be exploited.
+
 ---
 
 ## Instructions
