@@ -82,3 +82,7 @@
     daemon_reload: yes
     name: prometheus
     enabled: yes
+
+- name: "Check status on prometheus"
+  shell: |
+    sudo systemctl status prometheus

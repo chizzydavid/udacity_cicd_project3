@@ -165,7 +165,7 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
 
 ### Things to protect (SECURITY)
 
--**Webhooks** are secrets you are need to protect.  Same as **IP addresses** to your instances.  That is why, in this project we are using environment variables and memstash (or another feature store application) to store items that could be exploited.
+-**Webhooks** are secrets you are need to protect.  Same as **IP addresses** to your instances.  That is why, in this project we are using environment variables and memstash (or another feature store application) to store items that could be exploited. Also, **database connection** information is also a credential to protect.
 
 ---
 

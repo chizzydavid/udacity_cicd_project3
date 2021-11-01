@@ -331,6 +331,13 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
       #Here's where you will add some code to rollback on failure
+      - run:
+          name: Set up slack configuration
+          command: |
+            cd .circleci/ansible/files
+            # Not sure if the file should be .txt or .yml
+            echo $SLACK_WEBHOOK > slack_configutation.yml
+            cat slack_configuration.yml 
 
       - run:
           name: Configure Prometheus Server

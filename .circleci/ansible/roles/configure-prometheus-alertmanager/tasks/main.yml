@@ -35,6 +35,12 @@
     src: alertmanager.yml
     dest: /etc/prometheus/
 
+- name: "Add slack configuration configuration to prometheus folder."
+  become: true
+  copy:
+    src: slack_configuration.yml
+    dest: /etc/prometheus/
+
 - name: "Add prometheus unit file to systemd folder."
   become: true
   copy:
@@ -48,3 +54,8 @@
     daemon_reload: yes
     name: alertmanager
     enabled: yes
+
+- name: "Check status on alertmanager"
+  shell: |
+    sudo systemctl status alertmanager
+    # sudo systemctl restart prometheus

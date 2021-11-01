@@ -1,3 +1,7 @@
+- name: "Create new user named node_exporter with no home directory"
+  shell: |
+    sudo useradd --no-create-home node_exporter
+
 - name: "install node exporter."
   unarchive:
     src: https://github.com/prometheus/node_exporter/releases/download/v1.2.2/node_exporter-1.2.2.linux-amd64.tar.gz
@@ -25,3 +29,8 @@
     daemon_reload: yes
     name: node_exporter
     enabled: yes
+
+- name: "Check status on node exporter"
+  shell: |
+    sudo systemctl status node-exporter
+    sudo systemctl restart prometheus
