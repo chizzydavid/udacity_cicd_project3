@@ -12,14 +12,14 @@
   become: true
   copy:
     src: /tmp/node_exporter-1.2.2.linux-amd64/node_exporter
-    dest: /usr/local/bin/
+    dest: /usr/local/bin/node_exporter
     remote_src: yes
     mode: '0777'
     
 - name: "add node exporter configuration."
   become: true
   copy:
-    src: node-exporter.service
+    src: node_exporter.service
     dest: /etc/systemd/system/
 
 - name: "enable node_exporter service"
@@ -29,8 +29,3 @@
     daemon_reload: yes
     name: node_exporter
     enabled: yes
-
-- name: "Check status on node exporter"
-  shell: |
-    sudo systemctl status node-exporter
-    sudo systemctl restart prometheus

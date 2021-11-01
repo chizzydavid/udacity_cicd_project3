@@ -133,6 +133,7 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
 ### Random help links
 
 - [AWS CLI S3 Command Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html)
+- [Common Network Ports](https://www.utilizewindows.com/list-of-common-network-port-numbers/)
 - [difference btw aws cp and aws sync:](https://stackoverflow.com/questions/64728076/aws-s3-cp-vs-aws-s3-sync-behavior-and-cost)
 - [Ansible playbook command for targeting different groups in an inventory](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
 - [Setting up a prometheus server on an EC2 instance](https://codewizardly.com/prometheus-on-aws-ec2-part1/)

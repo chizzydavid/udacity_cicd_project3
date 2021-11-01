@@ -54,8 +54,3 @@
     daemon_reload: yes
     name: alertmanager
     enabled: yes
-
-- name: "Check status on alertmanager"
-  shell: |
-    sudo systemctl status alertmanager
-    # sudo systemctl restart prometheus
