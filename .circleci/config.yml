@@ -334,7 +334,7 @@ jobs:
       - run:
           name: Set up slack configuration
           command: |
-            cd .circleci/ansible/files
+            cd .circleci/ansible/roles/configure-prometheus-alertmanager/files
             # Not sure if the file should be .txt or .yml
             echo $SLACK_WEBHOOK > slack_configutation.yml
             cat slack_configuration.yml 
