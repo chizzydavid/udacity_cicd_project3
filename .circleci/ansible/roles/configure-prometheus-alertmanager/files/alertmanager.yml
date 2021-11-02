@@ -1,5 +1,5 @@
 global:
-  slack_api_url_file: '/etc/prometheus/slack_configuration.yml'
+  slack_api_url_file: '/etc/prometheus/slack_configuration.txt'
 
 route:
   receiver: slack-alert-notice
