@@ -15,13 +15,6 @@
     state: latest
     update_cache: yes
 
-# Just a test to understand the src parameter.  
-# Test.md is in the ansible file folder
-- name: Copy test file to remote server
-  copy:
-    src: test.md
-    dest: /home/ubuntu
-
 - name: Creates directory 
   file:
     path: /home/ubuntu/backend
@@ -39,7 +32,7 @@
 - name: Start backend
   become: true
   shell: |
-    cd /home/ubuntu/backend
-    pm2 start npm --name backend -- start
-    pm2 ls
-    pm2 logs
+    cd /home/ubuntu/dist
+    sudo pm2 start npm --name backend -- start
+    sudo pm2 ls
+    sudo pm2 logs
