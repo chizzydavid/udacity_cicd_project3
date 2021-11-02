@@ -230,18 +230,14 @@ jobs:
       - run:
           name: Add prometheus server ip to ansible inventory
           command: |
-            PROMETHEUS_SERVER_IP=(aws ec2 describe-instances \
-             --filters "Name=tag:project,Values=udacity-project3-backend" \
+            aws ec2 describe-instances \
+             --filters "Name=tag:Name,Values=prometheus-server" \
              --query 'Reservations[*].Instances[*].PublicDnsName' \
-             --output text)
-            
-            CMD="prometheus-server ansible_host=$PROMETHEUS_SERVER"
-            echo $CMD
-            echo $CMD >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
+             --output text >> .circleci/ansible/inventory.txt # Appends results to inventory.txt
             cat .circleci/ansible/inventory.txt
 
       - run:
-          name: Add back-end ip to ansible inventory
+          name: Add backend ip to ansible inventory
           command: |
             echo "[backend]" >> .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
