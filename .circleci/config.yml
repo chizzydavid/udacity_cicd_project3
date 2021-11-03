@@ -328,13 +328,14 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
 
-      #Resource: https://able.bio/rhett/how-to-set-and-get-environment-variables-in-python--274rgt5
+      #Resource1: https://able.bio/rhett/how-to-set-and-get-environment-variables-in-python--274rgt5
+      #Resource2: https://askubuntu.com/questions/529919/how-to-fix-not-a-valid-identifier-error-after-setting-environment-variables
       - run:
           name: Set up slack configuration
           command: |
             cd .circleci/ansible/roles/configure-prometheus-alertmanager/files
             # Not sure if the file should be .txt or .yml
-            export $SLACK_WEBHOOK
+            export slack_api_url=$SLACK_WEBHOOK
             python slack_config.py
             
             #echo $SLACK_WEBHOOK > slack_configutation.yml
