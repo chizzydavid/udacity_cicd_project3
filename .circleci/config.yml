@@ -295,6 +295,7 @@ jobs:
           command: |
             # Your code here
             pip install -U ansible
+            pip install pyyaml
             pip install awscli
             python --version
 
@@ -326,15 +327,18 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
             cat inventory.txt
-      #Here's where you will add some code to rollback on failure
+
+      #Resource: https://able.bio/rhett/how-to-set-and-get-environment-variables-in-python--274rgt5
       - run:
           name: Set up slack configuration
           command: |
             cd .circleci/ansible/roles/configure-prometheus-alertmanager/files
             # Not sure if the file should be .txt or .yml
             export $SLACK_WEBHOOK
-            echo $SLACK_WEBHOOK > slack_configutation.yml
-            cat slack_configuration.yml
+            python slack_config.py
+            
+            #echo $SLACK_WEBHOOK > slack_configutation.yml
+            #cat slack_configuration.yml
 
       - run:
           name: Configure Prometheus Server

@@ -138,6 +138,7 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
 - [Ansible playbook command for targeting different groups in an inventory](https://docs.ansible.com/ansible/latest/cli/ansible-playbook.html)
 - [Setting up a prometheus server on an EC2 instance](https://codewizardly.com/prometheus-on-aws-ec2-part1/)
 - [Setting up Prometheus Service Discovery on AWS EC2](https://codewizardly.com/prometheus-on-aws-ec2-part3/)
+- [Setting up Alerts](https://grafana.com/blog/2020/02/25/step-by-step-guide-to-setting-up-prometheus-alertmanager-with-slack-pagerduty-and-gmail/)
 - [How to use the vi editor on linux](https://staff.washington.edu/rells/R110/)
   - Had to use this command a lot to save: `:w !sudo tee %`, then type (L) load <https://stackoverflow.com/questions/14948441/vim-cant-save-file-e212/14948510>.  But if I use `sudo vi <filename>` you will not run into this issue.
 - [SCP command for copying from local machine to EC2 instance](https://angus.readthedocs.io/en/2014/amazon/transfer-files-between-instance.html)
