@@ -1,12 +1,12 @@
-- name: "update apt packages"
-  become: yes
-  apt:
-    update_cache: yes
-
 - name: "upgrade packages"
   become: yes
   apt:
     upgrade: "yes"
+
+- name: "update apt packages"
+  become: yes
+  apt:
+    update_cache: yes
 
 - name: "install dependencies"
   become: yes
@@ -24,7 +24,7 @@
   become: yes
   unarchive:
     src: backend.tar.gz
-    dest: /home/ubuntu
+    dest: /home/ubuntu/backend
 
 # pm2 will automatically restart your application if it crashes
 # pm2 will keep a log of your unhandled exceptions /home/<user>/.pm2/logs/app-err.log.
@@ -32,7 +32,7 @@
 - name: Start backend
   become: true
   shell: |
-    cd /home/ubuntu/dist
+    cd /home/ubuntu/backend/dist
     sudo pm2 start npm --name backend -- start
     sudo pm2 ls # list services
     sudo pm2 logs #list logs
