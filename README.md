@@ -132,6 +132,7 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
 
 ### Random help links
 
+- [Easy PM2 resource](https://pm2.keymetrics.io/docs/usage/quick-start/)
 - [Creating a SlackApp to use CircleCI Slack Orb](https://github.com/CircleCI-Public/slack-orb/wiki/Setup)
 - [AWS CLI S3 Command Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html)
 - [Common Network Ports](https://www.utilizewindows.com/list-of-common-network-port-numbers/)

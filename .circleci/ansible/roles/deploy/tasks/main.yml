@@ -34,8 +34,16 @@
   shell: |
     cd /home/ubuntu/backend/dist
     #sudo pm2 start npm --name backend -- start
-    sudo pm2 start main.js
+    #sudo pm2 start main.js
+
+    # start main.js app, watch if files change (except in the node_modules).  Restart if 
+    # files have change.  Put time in logs.  Name this process uda-backend
+    sudo pm2 start main.js --watch --ignore-watch="node_modules" --time --name uda-backend
+
+    # List process that pm2 is running and monitoring
     sudo pm2 ls
+
+    # last 15 logs that pm2 has registered
     sudo pm2 logs #list logs
 
   environment:
