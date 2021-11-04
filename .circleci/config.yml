@@ -66,8 +66,10 @@ commands:
             
 jobs:
   build-frontend:
+    # So my executor here is docker
     docker:
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0 #legacy images start with circleci generation
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -95,7 +97,8 @@ jobs:
 
   build-backend:
     docker:
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -124,7 +127,8 @@ jobs:
   test-frontend:
     docker:
       # Docker image here
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
@@ -144,7 +148,8 @@ jobs:
   test-backend:
     docker:
       # Docker image here
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
@@ -165,7 +170,8 @@ jobs:
   scan-frontend:
     docker:
       # Docker image here
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
@@ -197,7 +203,8 @@ jobs:
   scan-backend:
     docker:
       # Docker image here
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
@@ -313,7 +320,8 @@ jobs:
   configure-infrastructure:
     docker:
       # Docker image here that supports Ansible
-      - image: circleci/python
+      #- image: circleci/python
+      - image: cimg/python
     steps:
       # Checkout code from git
       - checkout
@@ -391,7 +399,6 @@ jobs:
              - project/backend/.env
       
       - notify_slack_error
-
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
 
@@ -399,7 +406,8 @@ jobs:
   run-migrations:
     docker:
       # Docker image here that supports NodeJS
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       # Checkout code from git
       - checkout
@@ -496,7 +504,8 @@ jobs:
   # Starts the backend server for the app (application backend)
   deploy-backend:
     docker:
-      - image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - restore_cache:
