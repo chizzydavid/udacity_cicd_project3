@@ -132,6 +132,7 @@ Log into the machine and type `telnet localhost 3030`, for instance, if you are 
 
 ### Random help links
 
+- [Creating a SlackApp to use CircleCI Slack Orb](https://github.com/CircleCI-Public/slack-orb/wiki/Setup)
 - [AWS CLI S3 Command Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/s3/sync.html)
 - [Common Network Ports](https://www.utilizewindows.com/list-of-common-network-port-numbers/)
 - [difference btw aws cp and aws sync:](https://stackoverflow.com/questions/64728076/aws-s3-cp-vs-aws-s3-sync-behavior-and-cost)

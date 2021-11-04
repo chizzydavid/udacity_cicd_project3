@@ -1,7 +1,11 @@
 version: 2.1
 
+# Think of orbs as libraries
 orbs:
   slack: circleci/slack@4.4.4
+  #aws-cli: circleci/aws-cli@2.0.3
+  #node: circleci/node@4.7.0
+
 
 # These are custom functions that I use in other jobs
 commands:
@@ -36,6 +40,7 @@ commands:
             aws cloudformation delete-stack --stack-name "uda-backend-stack-<<parameters.workflow_id>>"
             aws cloudformation delete-stack --stack-name uda-prometheus-server-stack
 
+  # Function 3
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
