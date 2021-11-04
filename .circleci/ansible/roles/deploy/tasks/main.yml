@@ -32,7 +32,7 @@
 - name: Start backend
   become: true
   shell: |
-    cd /home/ubuntu
+    cd /home/ubuntu/dist
     sudo pm2 start npm --name backend -- start
     sudo pm2 ls # list services
     sudo pm2 logs #list logs
