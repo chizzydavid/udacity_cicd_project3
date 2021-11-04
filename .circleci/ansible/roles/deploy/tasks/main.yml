@@ -29,22 +29,28 @@
 # pm2 will automatically restart your application if it crashes
 # pm2 will keep a log of your unhandled exceptions /home/<user>/.pm2/logs/app-err.log.
 # learn more: https://www.digitalocean.com/community/tutorials/how-to-use-pm2-to-setup-a-node-js-production-environment-on-an-ubuntu-vps
+- name: Build Backend again
+  shell: |
+    cd /home/ubuntu/backend
+    npm run build #Not sure if needed
+
 - name: Start backend
   become: true
   shell: |
-    cd /home/ubuntu/backend/dist
-    #sudo pm2 start npm --name backend -- start
-    #sudo pm2 start main.js
+    cd /home/ubuntu/backend
 
-    # start main.js app, watch if files change (except in the node_modules).  Restart if 
-    # files have change.  Put time in logs.  Name this process uda-backend
-    sudo pm2 start main.js --watch --ignore-watch="node_modules" --time --name uda-backend
+    # start backend app, `watch` if files change (`ignore` file changes in the node_modules).  Restart if 
+    # files have change.  Put `time` in logs.  `Name` this process uda-backend
+    sudo pm2 start npm --watch --ignore-watch="node_modules" --time --name uda-backend  -- start
+    
+    #cd dist
+    #sudo pm2 start main.js --watch --time --name app -- --port 3030
 
     # List process that pm2 is running and monitoring
     sudo pm2 ls
 
-    # last 15 logs that pm2 has registered
-    sudo pm2 logs #list logs
+    # list the last 20 logs that pm2 has registered
+    sudo pm2 logs lines 20 #lists the last 20 logs
 
   environment:
     Environment:
