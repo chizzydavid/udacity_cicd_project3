@@ -1,6 +1,21 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.4.4
+
+# These are custom functions that I use in other jobs
 commands:
+  # Function 1
+  notify_slack_error:
+    steps:
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+          mentions: "@ugochi" #if you want to target a particular person
+          channel: alerts
+          only_for_branch: main
+
+  # Function 2
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
@@ -72,6 +87,8 @@ jobs:
           paths: [frontend/node_modules]
           key: frontend-build
 
+      - notify_slack_error
+
   build-backend:
     docker:
       - image: circleci/node:13.8.0
@@ -97,6 +114,8 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+
+      - notify_slack_error
 
   test-frontend:
     docker:
@@ -136,6 +155,8 @@ jobs:
           command: |
             cd backend
             npm test
+
+      - notify_slack_error
             
   scan-frontend:
     docker:
@@ -161,9 +182,12 @@ jobs:
             npm install
             npm update
             npm audit fix --audit-level=critical --force
+
       - save_cache:
           paths: [frontend/node_modules]
           key: scan-frontend
+
+      - notify_slack_error
     
 
   scan-backend:
@@ -185,9 +209,12 @@ jobs:
             npm install
             npm update
             npm audit fix --audit-level=critical --force
+
       - save_cache:
           paths: [backend/node_modules]
           key: scan-backend
+
+      - notify_slack_error
 
 
   deploy-infrastructure:
@@ -217,6 +244,7 @@ jobs:
               --tags project=udacity-project3-backend \
               --stack-name "uda-backend-stack-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
+
       - run:
           name: Ensure front-end infrastructure exist
           command: |
@@ -270,6 +298,9 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
             - project/backend/
+      
+      - notify_slack_error
+
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
@@ -354,6 +385,8 @@ jobs:
            root: ~/
            paths:
              - project/backend/.env
+      
+      - notify_slack_error
 
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"      
@@ -396,7 +429,7 @@ jobs:
               --request PUT --data "0" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
             fi
      # Here's where you will add some code to rollback on failure
-
+      - notify_slack_error
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
@@ -450,6 +483,7 @@ jobs:
             aws s3 sync . s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --acl public-read --delete
             
       # Here's where you will add some code to rollback on failure
+      - notify_slack_error
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}" 
       - revert-migrations:
@@ -510,6 +544,7 @@ jobs:
 
       # - destroy-environment:
       #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - notify_slack_error
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"   
 
@@ -547,6 +582,7 @@ jobs:
             fi
 
       # Here's where you will add some code to rollback on failure
+      - notify_slack_error
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
@@ -595,10 +631,11 @@ jobs:
             fi
 
       # Here's where you will add some code to rollback on failure
-      # - destroy-environment:
-      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      - notify_slack_error
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
 
   cloudfront-update:
@@ -633,7 +670,8 @@ jobs:
               --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM"
               
 
-      # Here's where you will add some code to rollback on failure  
+      # Here's where you will add some code to rollback on failure
+      - notify_slack_error  
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
