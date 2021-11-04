@@ -511,7 +511,6 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
-      # attach workspace
       - attach_workspace:
           at: ~/
       - add_ssh_keys:
