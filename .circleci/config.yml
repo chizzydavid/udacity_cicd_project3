@@ -10,10 +10,9 @@ commands:
     steps:
       - slack/notify:
           event: fail
-          template: basic_fail_1
+          template: basic_fail_1 # build in formating template to display failure
           mentions: "@ugochi" #if you want to target a particular person
-          channel: alerts
-          only_for_branch: main
+          channel: alerts # Slack channel to display to
 
   # Function 2
   destroy-environment:
