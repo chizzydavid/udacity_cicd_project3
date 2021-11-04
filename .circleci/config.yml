@@ -321,7 +321,7 @@ jobs:
     docker:
       # Docker image here that supports Ansible
       #- image: circleci/python
-      - image: cimg/python
+      - image: cimg/python:3.10.0
     steps:
       # Checkout code from git
       - checkout
