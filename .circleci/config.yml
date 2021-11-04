@@ -1,6 +1,6 @@
 version: 2.1
 
-# Think of orbs as libraries
+# Think of orbs as libraries or packages for CircleCI
 orbs:
   slack: circleci/slack@4.4.4
   #aws-cli: circleci/aws-cli@2.0.3
