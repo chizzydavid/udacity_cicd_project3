@@ -503,7 +503,7 @@ jobs:
 
       - run:
           name: Deploy Backend
-          no_output_timeout: 30m
+          no_output_timeout: 15m
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
