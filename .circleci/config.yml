@@ -504,11 +504,8 @@ jobs:
   # Starts the backend server for the app (application backend)
   deploy-backend:
     docker:
-      #- image: circleci/node:13.8.0 #legacy
       #- image: cimg/node:13.8.0
-      #- image: cimg/node:17.0.0
-      #- image: cimg/python:3.10.0
-      - image: python-nodejs:latest
+      - image: cimg/node:17.0.0
     steps:
       - checkout
       - restore_cache:
@@ -520,8 +517,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            #sudo apt-get update
-            #sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
+            sudo apt-get update
+            sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
             python --version
             pip3 --version
             pip3 install awscli
@@ -552,7 +549,7 @@ jobs:
 
       - run:
           name: Deploy Backend
-          no_output_timeout: 20m
+          no_output_timeout: 15m
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
