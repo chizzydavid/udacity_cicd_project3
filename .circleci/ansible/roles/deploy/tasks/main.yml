@@ -33,7 +33,7 @@
   become: true
   shell: |
     cd /home/ubuntu/backend
-    sudo npm run build #Not sure if needed
+    npm run build #Not sure if needed
 
 - name: Start backend
   become: true
@@ -44,16 +44,18 @@
     # files have change.  Put `time` in logs.  `Name` this process uda-backend
     # need the dash -- before start (at the end of the command) so that pm2 will stop parsing the flags as its own.  Instead the start command
     # will be attached to the npm command (i.e. npm start)
-    sudo pm2 start npm --watch --ignore-watch="node_modules" --time --name uda-backend  -- start
-    
-    #cd dist
-    #sudo pm2 start main.js --watch --time --name app -- --port 3030
 
+    # sudo pm2 start npm --watch --ignore-watch="node_modules" --time --name uda-backend  -- start
+    pm2 start npm --name uda-backend  -- start
+
+    cd dist
+    pm2 start main.js --name main_app
+    
     # List process that pm2 is running and monitoring
-    sudo pm2 ls
+    pm2 ls
 
     # list the last 20 logs that pm2 has registered
-    sudo pm2 logs lines 20 #lists the last 20 logs
+    pm2 logs lines 20 #lists the last 20 logs
 
   environment:
     Environment:
