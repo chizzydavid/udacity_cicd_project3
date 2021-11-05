@@ -504,8 +504,8 @@ jobs:
   # Starts the backend server for the app (application backend)
   deploy-backend:
     docker:
-      - image: cimg/node:13.8.0
-      #- image: cimg/node:17.0.0
+      #- image: cimg/node:13.8.0
+      - image: cimg/python:3.10.0-node
     steps:
       - checkout
       - restore_cache:
@@ -517,20 +517,20 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            sudo apt-get update
-            sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
+            #sudo apt-get update
+            #sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
             python --version
             pip3 --version
             pip3 install awscli
             pip3 install ansible
 
-      - run:
-          name: Backend build
-          command: |
-            cd backend
-            #npm i
-            npm run build
-            ls -lha # just want to see the list of files
+      # - run:
+      #     name: Backend build
+      #     command: |
+      #       cd backend
+      #       #npm i
+      #       npm run build
+      #       ls -lha # just want to see the list of files
       
       # Why I am doing the tar this way:
       # https://stackoverflow.com/questions/20318852/tar-file-changed-as-we-read-it 
