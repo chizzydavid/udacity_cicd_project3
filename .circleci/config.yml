@@ -504,7 +504,7 @@ jobs:
   # Starts the backend server for the app (application backend)
   deploy-backend:
     docker:
-      #- image: circleci/node:13.8.0
+      #- image: circleci/node:13.8.0 #legacy
       - image: cimg/node:13.8.0
       #- image: cimg/node:17.0.0
       #- image: cimg/python:3.10.0-node
