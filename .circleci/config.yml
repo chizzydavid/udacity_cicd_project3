@@ -502,10 +502,63 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"     
 
   # Starts the backend server for the app (application backend)
+  # Time outs
+  # deploy-backend:
+  #   docker:
+  #     #- image: cimg/node:13.8.0
+  #     - image: cimg/python:3.10.0-node
+  #   steps:
+  #     - checkout
+  #     - restore_cache:
+  #         keys: [backend-build]
+  #     - attach_workspace:
+  #         at: ~/
+  #     - add_ssh_keys:
+  #         fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           #sudo apt-get update
+  #           #sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
+
+  #           node -v
+  #           python --version
+  #           pip3 --version
+  #           pip3 install awscli
+  #           pip3 install ansible
+      
+  #     # Why I am doing the tar this way:
+  #     # https://stackoverflow.com/questions/20318852/tar-file-changed-as-we-read-it 
+  #     - run:
+  #         name: Compress build objects to tar File
+  #         command: |
+  #           # Save to top level folder of project
+  #           tar -C backend -czvf backend.tar.gz . #Change directory to backend, then tar
+  #           ls
+
+  #     - run:
+  #         name: Save compressed files into Ansible folder
+  #         command: |
+  #           ls
+  #           sudo cp backend.tar.gz .circleci/ansible/roles/deploy/files/backend.tar.gz
+
+  #     - run:
+  #         name: Deploy Backend
+  #         no_output_timeout: 15m
+  #         command: |
+  #           cd .circleci/ansible
+  #           ansible-playbook -i inventory.txt deploy-backend.yml
+
+  #     - notify_slack_error
+  #     - destroy-environment:
+  #         workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+  #     - revert-migrations:
+  #         workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+
   deploy-backend:
     docker:
       #- image: cimg/node:13.8.0
-      - image: cimg/python:3.10.0-node
+      - image: amazon/aws-cli
     steps:
       - checkout
       - restore_cache:
@@ -515,22 +568,20 @@ jobs:
       - add_ssh_keys:
           fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
       - run:
-          name: Install dependencies
+          name: Install Python and nodeJS
           command: |
-            #sudo apt-get update
-            #sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
-            python --version
+            yum install gzip tar python3-pip curl -y
+            curl -sL https://rpm.nodesource.com/setup_14.x | bash -
+            yum install nodejs npm -y
+            
+            node -v
+            python3 --version
             pip3 --version
-            pip3 install awscli
-            pip3 install ansible
 
-      # - run:
-      #     name: Backend build
-      #     command: |
-      #       cd backend
-      #       #npm i
-      #       npm run build
-      #       ls -lha # just want to see the list of files
+      - run:
+          name: Install Ansible
+          command: |
+            pip3 install ansible
       
       # Why I am doing the tar this way:
       # https://stackoverflow.com/questions/20318852/tar-file-changed-as-we-read-it 
