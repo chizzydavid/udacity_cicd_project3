@@ -33,6 +33,7 @@
   become: true
   shell: |
     cd /home/ubuntu/backend
+    npm i
     npm run build #Not sure if needed
 
 - name: Start backend
@@ -46,7 +47,7 @@
     # will be attached to the npm command (i.e. npm start)
 
     # sudo pm2 start npm --watch --ignore-watch="node_modules" --time --name uda-backend  -- start
-    pm2 start npm --name uda-backend  -- start
+    #pm2 start npm --name uda-backend  -- start
 
     cd dist
     pm2 start main.js --name main_app

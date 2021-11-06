@@ -505,8 +505,7 @@ jobs:
   # Time outs
   deploy-backend:
     docker:
-      - image: cimg/node:17.0.0
-      #- image: cimg/python:3.10.0-node
+      - image: cimg/python:3.10.0-node
     steps:
       - checkout
       - restore_cache:
@@ -516,14 +515,15 @@ jobs:
       - add_ssh_keys:
           fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
       - run:
-          name: Install dependencies
+          name: Check Versions
           command: |
-            sudo apt-get update
-            sudo apt-get install gzip tar python3-pip -y # not sure if it is yum or apt
-
             node -v
             python3 --version
             pip3 --version
+
+      - run:
+          name: Install dependencies
+          command: |
             pip3 install awscli
             pip3 install ansible
       
@@ -550,8 +550,8 @@ jobs:
             ansible-playbook -i inventory.txt deploy-backend.yml
 
       - notify_slack_error
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
