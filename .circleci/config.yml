@@ -568,11 +568,11 @@ jobs:
       - add_ssh_keys:
           fingerprints: [63:01:4c:08:9c:09:4e:03:fa:b1:40:43:37:e7:54:eb]
       - run:
-          name: Install Python and nodeJS
+          name: Install Python, tar, and nodeJS
           command: |
             yum install gzip tar python3-pip curl -y
             curl -sL https://rpm.nodesource.com/setup_14.x | bash -
-            yum install nodejs npm -y
+            yum install nodejs npm tar -y
             
             node -v
             python3 --version
